@@ -18,6 +18,6 @@
 - Added download of edited input JSON and editor validation tests.
 - Updated Streamlit width parameters to supported API.
 
-## Release preparation (unreleased)
+## 1.0.0 — First public release
 - Add GitHub Actions CI, MIT license, Streamlit configuration and deployment instructions.
 - Keep application logic unchanged from V2.1.

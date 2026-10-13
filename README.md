@@ -1,27 +1,27 @@
 # Smart Schedule Optimizer
 
 [![Python tests](https://github.com/Triar1/smart-schedule-optimizer/actions/workflows/tests.yml/badge.svg)](https://github.com/Triar1/smart-schedule-optimizer/actions/workflows/tests.yml)
+[![Live demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B)](https://smart-schedule-optimizer-triar1.streamlit.app/)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-**An interactive constraint-programming application for scheduling sessions with availability windows, minimum breaks, and multiple optimization objectives.**
+**Optimize weekly session schedules with constraint programming.** This Python application uses Google OR-Tools CP-SAT to assign sessions to availability windows, enforce minimum breaks, and balance idle time against the number of working days. A Streamlit dashboard makes the optimization accessible without writing code.
 
-> Portfolio project · Python · Google OR-Tools CP-SAT · Streamlit · Plotly
+**[Try the live application](https://smart-schedule-optimizer-triar1.streamlit.app/)** · [Source code](https://github.com/Triar1/smart-schedule-optimizer)
 
-## Live demo
+## Preview
 
-Deploy on Streamlit Community Cloud (see below), then replace this line with your live URL.
-
-## Demo screenshot
-
-Add a screenshot of the running dashboard at `assets/dashboard.png` and embed it here before publicizing the project.
+<!-- Capture the actual running app and save it as assets/dashboard.png before the final release. -->
+![Interactive scheduling dashboard](assets/dashboard.png)
 
 ## Features
 
-- Assign each session exactly once within its allowed availability windows.
-- Support variable session durations and a configurable time grid.
-- Prevent all overlaps on a shared single-resource calendar.
-- Minimize **total daily idle time** between the first and last sessions.
-- Return explicit `OPTIMAL`, `FEASIBLE`, or `INFEASIBLE` solver statuses.
-- CLI, sample dataset, and automated tests.
+- **Constraint-based scheduling:** assign every session exactly once, within its availability windows, with no overlaps on a shared resource.
+- **Flexible scheduling rules:** configurable time grid, session duration and minimum breaks.
+- **Multi-objective optimization:** minimize idle minutes and/or the number of active days using configurable integer weights.
+- **Interactive dashboard:** edit sessions and availability windows, explore weekly calendars, and compare strategies.
+- **Import/export:** upload JSON inputs, download edited JSON and export optimized schedules as CSV.
+- **Reproducibility:** sample dataset, CLI, automated pytest suite and GitHub Actions CI.
 
 ## Quick start
 
@@ -29,122 +29,74 @@ Requires Python 3.10+.
 
 ```bash
 python -m venv .venv
-# Linux/macOS: source .venv/bin/activate
-# Windows PowerShell: .venv\\Scripts\\Activate.ps1
-python -m pip install -e '.[dev]'
-smart-schedule examples/sample.json
-pytest -q
+# Windows PowerShell: .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+# macOS / Linux: .venv/bin/python -m pip install -e '.[dev]'
 ```
 
-For Windows PowerShell, install dependencies with `python -m pip install -e ".[dev]"`.
-
-## Input format
-
-See [`examples/sample.json`](examples/sample.json). Each session has a unique name, a duration in minutes, and one or more availability windows with `day`, `start`, and `end`.
-
-## Mathematical model
-
-Binary variable `x[s,t]` indicates that session `s` starts at feasible time `t`.
-Each session is assigned exactly once, and at most one selected session occupies any time slot.
-The objective minimizes `sum_d (last_end[d] - first_start[d] - busy_minutes[d])` over active days; inactive days contribute zero.
-
-## Scope and limitations
-
-V1 assumes one shared resource (e.g. one tutor), one session per name, no travel/break constraints, and a fixed weekly horizon. All session durations must be multiples of the time grid (default 15 minutes). Availability bounds are rounded inward to grid-aligned start times. A `FEASIBLE` result is valid but not necessarily globally optimal if the time limit is reached.
-
-## Next steps
-
-Support required breaks, multiple resources, participant priorities, fewer active days, and a Streamlit interface.
-
-
-## V1.1 — Multi-objective scheduling
-
-Set a minimum break (multiple of the slot size) and integer objective weights:
+Launch the dashboard (Windows PowerShell):
 
 ```powershell
-smart-schedule examples/sample.json --min-break 15 --idle-weight 1 --day-weight 60
-```
-
-The objective is `idle_weight * idle_minutes + day_weight * active_days`.
-A day weight of 60 treats an extra active day as costly as 60 idle minutes
-when the idle weight is 1. Defaults (`--min-break 0 --idle-weight 1
---day-weight 0`) preserve V1 behavior.
-
-The reported metrics are independent of the objective score. An `OPTIMAL`
-status certifies the best score for the configured objective; a `FEASIBLE`
-status indicates a solution was found but optimality was not proved within
-the time limit.
-
-## V2 — Interactive dashboard
-
-Install from the project root (Windows PowerShell):
-
-```powershell
-py -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m streamlit run src/scheduler/dashboard.py
 ```
 
-Streamlit opens a local browser app. Use the sidebar to upload a JSON schedule,
-set the minimum break and objective weights, and compare three optimization
-strategies. The schedule can be downloaded as CSV. The CLI remains available:
+Or run the command-line optimizer:
 
 ```powershell
 .\.venv\Scripts\smart-schedule.exe examples/sample.json --min-break 15 --idle-weight 1 --day-weight 60
 ```
 
-Run the automated tests:
+Run the tests:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -v
 ```
 
-**Optimization caveats:** `OPTIMAL` proves the minimum for the configured
-objective; `FEASIBLE` only indicates a schedule was found before the time limit.
-The weighted score is not comparable across different weight settings. The
-minimum break is counted as idle time between sessions. Only time slots
-aligned to the selected grid can be used. No data is sent to a remote service
-by the app itself; uploaded data is processed in the local Streamlit process.
+## Input data
 
-## V2.1: edit sessions in the browser
+Input is a JSON object containing sessions with unique names, durations in minutes, and availability windows (`day`, `start`, `end`). See [`examples/sample.json`](examples/sample.json). Repeated rows in the dashboard can represent multiple availability windows for the same session.
 
-Run `python -m streamlit run src/scheduler/dashboard.py`, then edit the availability table and click **Apply changes**. Each row represents one availability window. Repeat the same session name to add multiple windows, using the same duration on each row. Add or delete rows using the table controls. Use **Download edited input JSON** to save your changes.
+Use **fictional or anonymized data** when testing the public application; do not upload confidential schedules or personal student information.
 
-The dashboard displays the weekly schedule and allows comparison of three optimization strategies. Run the tests with `python -m pytest -v`.
+## Optimization model
 
-**Notes:** The solver uses a discrete time grid; durations must be multiples of the chosen slot size. A `FEASIBLE` status is not proof of global optimality. The comparison chart uses separate axes for idle minutes and active days.
+Let `x[s,t]` be a binary decision variable indicating whether session `s` starts at feasible grid time `t`.
 
+- **Assignment:** each session must start exactly once.
+- **Capacity:** sessions cannot overlap on the single shared resource.
+- **Availability:** starts and durations must fit within allowed windows.
+- **Minimum break:** selected sessions must be separated by the configured break.
 
-## Dashboard
+The objective is:
 
-```powershell
-py -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m streamlit run src/scheduler/dashboard.py
+```text
+minimize idle_weight * total_idle_minutes + day_weight * active_days
 ```
 
-## Run tests
+`total_idle_minutes` is the sum of gaps between the first start and last end of each active day, excluding scheduled session durations. It includes required breaks. The weights are user-configurable, and comparisons between different weight settings should use the underlying metrics rather than raw objective scores.
 
-```powershell
-.\.venv\Scripts\python.exe -m pytest -v
+**Solver statuses:** `OPTIMAL` certifies optimality for the configured objective; `FEASIBLE` indicates a valid schedule without proof of optimality within the time limit; `INFEASIBLE` indicates no valid assignment exists under the constraints.
+
+## Limitations
+
+- One shared resource (e.g., one tutor), not multi-tutor scheduling.
+- Discrete time grid: session durations must align with the selected slot size.
+- Fixed weekly horizon; no recurring calendar synchronization or travel-time constraints.
+- Very large scheduling instances may require additional modeling and performance work.
+
+## Project structure
+
+```text
+src/scheduler/      Optimization engine, models, CLI, dashboard and helpers
+tests/              Automated regression tests
+examples/           Sample scheduling data
+.github/workflows/  GitHub Actions CI
+assets/             Dashboard screenshot
 ```
 
-## Deploy on Streamlit Community Cloud
+## Deployment
 
-1. Push this repository to GitHub.
-2. In Streamlit Community Cloud choose **Create app** and select this repository.
-3. Set the main file path to `src/scheduler/dashboard.py`.
-4. `requirements.txt` installs the project and its dependencies.
-5. Once deployed, paste the public URL into the **Live demo** section above.
-
-## Engineering notes
-
-- One shared resource: all sessions are scheduled without overlap.
-- Times are discrete; slot size must divide the day, and session durations must align with it.
-- The solver may return `FEASIBLE` when the time limit expires: this does not certify optimality.
-- The weighted objective is `idle_weight × idle_minutes + day_weight × active_days`.
-- Do not upload private student data; the included sample uses fictitious names.
+Hosted on [Streamlit Community Cloud](https://smart-schedule-optimizer-triar1.streamlit.app/) using `src/scheduler/dashboard.py` as the entry point. The dependencies are installed from `requirements.txt`.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

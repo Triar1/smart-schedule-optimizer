@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "smart-schedule-optimizer"
-version = "0.4.0"
+version = "1.0.0"
 description = "Constraint-based scheduling with minimum idle time"
 requires-python = ">=3.10"
 dependencies = ["ortools>=9.10,<10", "streamlit>=1.35,<2", "plotly>=5.20,<7"]

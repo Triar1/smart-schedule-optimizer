@@ -1,10 +1,11 @@
-# Release checklist
+# v1.0.0 release checklist
 
-- [ ] Run `python -m pytest -v` locally; confirm all 31 tests pass.
-- [ ] Launch Streamlit and verify editing, solving, comparisons, downloads.
-- [ ] Capture screenshot into `assets/dashboard.png` and embed in README.
-- [ ] Push to GitHub and confirm both CI matrix jobs pass.
-- [ ] Deploy to Streamlit Community Cloud; test public URL.
-- [ ] Add demo URL to README and repository About section.
-- [ ] Check repository contains no real student names or personal data.
-- [ ] Create release tag `v1.0.0` only after checks above.
+- [ ] Save a genuine dashboard screenshot at `assets/dashboard.png` (the README references it).
+- [ ] Run `python -m pytest -v` and confirm all tests pass.
+- [ ] Verify the live Streamlit demo after pushing the changes.
+- [ ] Check GitHub Actions is green on `main`.
+- [ ] Review the MIT license copyright name and year.
+- [ ] Commit and push the release files.
+- [ ] Create tag `v1.0.0` from `main` via GitHub Releases.
+- [ ] Paste `RELEASE_NOTES_v1.0.0.md` into the release description and publish.
+- [ ] Pin the repository on the GitHub profile.
